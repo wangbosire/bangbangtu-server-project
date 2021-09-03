@@ -1,0 +1,27 @@
+server:
+  port: 8899
+
+
+spring:
+  profiles:
+    active: dev
+
+  security:
+
+    user:
+      name: admin
+      password: admin
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/study?characterEncoding=UTF-8
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      pool-name: DataHikariCP
+      minimum-idle: 5
+      idle-timeout: 180000
+      maximum-pool-size: 10
+      auto-commit: true
+      max-lifetime: 30000
+      connection-timeout: 30000
