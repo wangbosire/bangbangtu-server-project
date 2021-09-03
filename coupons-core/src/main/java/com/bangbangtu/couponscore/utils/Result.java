@@ -46,6 +46,10 @@ public class Result<T> {
         return error(ResultCodeEnum.ERROR.getMessage(), data);
     }
 
+    public static <T> Result<T> error(String message) {
+        return error(message, null);
+    }
+
     public static <T> Result<T> error(String message, T data) {
         return create(ResultCodeEnum.ERROR.getCode(), message, data);
     }

@@ -1,5 +1,6 @@
 package com.bangbangtu.couponsserver.controller;
 
+import com.bangbangtu.couponscore.utils.BusinessException;
 import com.bangbangtu.couponscore.utils.Result;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,11 +12,11 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Administrator
  */
 @RestController
-@RequestMapping("/user")
+@RequestMapping(value = "/user")
 public class UserController {
 
-    @PostMapping("/login")
+    @PostMapping(value = "/login")
     public Result<Object> login() {
-        return Result.success();
+        throw new BusinessException("业务异常");
     }
 }
