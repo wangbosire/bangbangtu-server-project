@@ -18,26 +18,12 @@ public class BusinessException extends RuntimeException {
     protected String message;
 
     public BusinessException(String message) {
+        super(message);
         this.message = message;
     }
 
-    public BusinessException(String message, String message1) {
-        super(message);
-        this.message = message1;
-    }
-
-    public BusinessException(String message, Throwable cause, String message1) {
-        super(message, cause);
-        this.message = message1;
-    }
-
-    public BusinessException(Throwable cause, String message) {
+    public BusinessException(String message, Throwable cause) {
         super(cause);
         this.message = message;
-    }
-
-    public BusinessException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace, String message1) {
-        super(message, cause, enableSuppression, writableStackTrace);
-        this.message = message1;
     }
 }
