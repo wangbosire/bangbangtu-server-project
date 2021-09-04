@@ -1,0 +1,4 @@
+appId=111
+appSecret=222
+grantType=authorization_code
+callbackUrl=222
