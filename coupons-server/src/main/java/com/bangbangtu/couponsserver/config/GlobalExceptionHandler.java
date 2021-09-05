@@ -1,5 +1,6 @@
 package com.bangbangtu.couponsserver.config;
 
+import com.bangbangtu.couponscore.constant.ResultCodeEnum;
 import com.bangbangtu.couponscore.utils.BusinessException;
 import com.bangbangtu.couponscore.utils.Result;
 import org.slf4j.Logger;
@@ -46,7 +47,7 @@ public class GlobalExceptionHandler {
     @ResponseBody
     public Result<Object> nullPointerException(NullPointerException e) {
         logger.error("发生空指针异常！原因是:", e);
-        return Result.error(e.getMessage());
+        return Result.error(ResultCodeEnum.ERROR.getMessage());
     }
 
     /**

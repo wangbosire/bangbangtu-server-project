@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -61,12 +62,13 @@ public class WeChatServiceImpl implements WeChatService {
     @SneakyThrows
     @Override
     public Result<Object> auth(String code) {
-        Map<String, String> param = new HashMap<>(4);
-        param.put("appid", appId);
-        param.put("secret", appSecret);
-        param.put("js_code", code);
-        param.put("grant_type", grantType);
-        String result = HttpClientUtil.get(wechatAuthApi, param);
-        return Result.success(JSONObject.parseObject(result));
+        Map<String, String> params = new HashMap<>(4);
+        params.put("appid", appId);
+        params.put("secret", appSecret);
+        params.put("js_code", code);
+        params.put("grant_type", grantType);
+        HttpClientUtil httpClientUtil = new HttpClientUtil();
+        ResponseEntity<String> result = httpClientUtil.get(wechatAuthApi, String.class, params);
+        return Result.success(result.getBody());
     }
 }
