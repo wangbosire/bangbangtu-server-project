@@ -1,9 +1,12 @@
 package com.bangbangtu.couponsserver.service.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.bangbangtu.couponscore.utils.Result;
 import com.bangbangtu.couponsserver.common.HttpClientUtil;
-import com.bangbangtu.couponsserver.common.JsonUtils;
 import com.bangbangtu.couponsserver.service.WeChatService;
+import lombok.SneakyThrows;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Service;
@@ -19,23 +22,24 @@ import java.util.Map;
 @PropertySource("classpath:wechat.yml")
 @Service(value = "WeChatService")
 public class WeChatServiceImpl implements WeChatService {
+    private static final Logger logger = LoggerFactory.getLogger(WeChatServiceImpl.class);
 
     /**
      * 小程序 appId
      */
-    @Value("appId")
+    @Value("${appId}")
     private String appId;
 
     /**
      * 小程序 appSecret
      */
-    @Value("appSecret")
+    @Value("${appSecret}")
     private String appSecret;
 
     /**
      * 小程序授权类型
      */
-    @Value("grantType")
+    @Value("${grantType}")
     private String grantType;
 
     /**
@@ -54,14 +58,15 @@ public class WeChatServiceImpl implements WeChatService {
      * @param code 小程序用于授权的Code { String }
      * @return { Object }
      */
+    @SneakyThrows
     @Override
     public Result<Object> auth(String code) {
-        Map<String, String> param = new HashMap<>();
+        Map<String, String> param = new HashMap<>(4);
         param.put("appid", appId);
         param.put("secret", appSecret);
         param.put("js_code", code);
         param.put("grant_type", grantType);
         String result = HttpClientUtil.get(wechatAuthApi, param);
-        return Result.success(JsonUtils.parseObject(result));
+        return Result.success(JSONObject.parseObject(result));
     }
 }

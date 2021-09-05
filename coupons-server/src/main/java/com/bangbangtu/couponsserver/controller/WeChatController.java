@@ -4,10 +4,7 @@ import com.bangbangtu.couponscore.utils.Result;
 import com.bangbangtu.couponsserver.service.impl.WeChatServiceImpl;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
@@ -29,7 +26,9 @@ public class WeChatController {
      */
     @ApiOperation(value = "微信小程序授权")
     @GetMapping(value = "/auth")
-    public Result<Object> auth(@RequestParam String code) {
+    public Result<Object> auth(
+            @RequestParam String code
+    ) {
         return weChatService.auth(code);
     }
 

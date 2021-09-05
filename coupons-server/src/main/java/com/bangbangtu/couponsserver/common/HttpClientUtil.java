@@ -1,20 +1,22 @@
 package com.bangbangtu.couponsserver.common;
 
-import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
-import org.apache.http.ParseException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -25,22 +27,26 @@ import java.util.Map;
  * @author Administrator
  */
 public class HttpClientUtil {
-    private static final CloseableHttpClient HTTP_CLIENT;
+    private static final Logger logger = LoggerFactory.getLogger(HttpClientUtil.class);
 
     public static final String CHARSET = "UTF-8";
 
     // 采用静态代码块，初始化超时时间配置，再根据配置生成默认httpClient对象
-    static {
-        RequestConfig config = RequestConfig.custom().setConnectTimeout(60000).setSocketTimeout(15000).build();
-        HTTP_CLIENT = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
+
+    public static String get(String url) {
+        return get(url, null);
     }
 
     public static String get(String url, Map<String, String> params) {
         return get(url, params, CHARSET);
     }
 
+    public static String post(String url) {
+        return post(url, null);
+    }
+
     public static String post(String url, Map<String, String> params) {
-        return get(url, params, CHARSET);
+        return post(url, params, CHARSET);
     }
 
     /**
@@ -56,40 +62,42 @@ public class HttpClientUtil {
             return null;
         }
 
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        CloseableHttpResponse response = null;
+        String result = null;
+
         try {
+
+            URIBuilder builder = new URIBuilder(url);
+
             if (params != null && !params.isEmpty()) {
-                List<NameValuePair> pairs = new ArrayList<NameValuePair>(params.size());
-                for (Map.Entry<String, String> entry : params.entrySet()) {
-                    String value = entry.getValue();
-                    if (value != null) {
-                        pairs.add(new BasicNameValuePair(entry.getKey(), value));
-                    }
+                for (String key : params.keySet()) {
+                    builder.addParameter(key, params.get(key));
                 }
-                // 将请求参数和url进行拼接
-                url += "?" + EntityUtils.toString(new UrlEncodedFormEntity(pairs, charset));
             }
+            URI uri = builder.build();
+            HttpGet httpGet = new HttpGet(uri);
 
-            HttpGet httpGet = new HttpGet(url);
-            CloseableHttpResponse response = HTTP_CLIENT.execute(httpGet);
-            int statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode != 200) {
-                httpGet.abort();
-                throw new RuntimeException("HttpClient,error status code :" + statusCode);
-            }
-            HttpEntity entity = response.getEntity();
-            String result = null;
-            if (entity != null) {
-                result = EntityUtils.toString(entity, "utf-8");
-            }
-            EntityUtils.consume(entity);
-            response.close();
-            return result;
+            response = httpClient.execute(httpGet);
 
+            // 判断返回状态是否为200
+            if (response.getStatusLine().getStatusCode() == 200) {
+                result = EntityUtils.toString(response.getEntity(), charset);
+            }
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            try {
+                if (response != null) {
+                    response.close();
+                }
+                httpClient.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
-        return null;
+        return result;
     }
 
     /**
@@ -100,42 +108,44 @@ public class HttpClientUtil {
      * @param charset 编码格式 { String }
      * @return 页面内容
      */
-    public static String post(String url, Map<String, String> params, String charset) throws IOException {
+    public static String post(String url, Map<String, String> params, String charset) {
         if (StringUtils.isEmpty(url)) {
             return null;
         }
-        List<NameValuePair> pairs = null;
-        if (params != null && !params.isEmpty()) {
-            pairs = new ArrayList<NameValuePair>(params.size());
-            for (Map.Entry<String, String> entry : params.entrySet()) {
-                String value = entry.getValue();
-                if (value != null) {
-                    pairs.add(new BasicNameValuePair(entry.getKey(), value));
+
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        CloseableHttpResponse response = null;
+        String result = null;
+
+        try {
+            // 创建Http Post请求
+            HttpPost httpPost = new HttpPost(url);
+            // 创建参数列表
+            if (params != null) {
+                List<NameValuePair> paramList = new ArrayList<>();
+                for (String key : params.keySet()) {
+                    paramList.add(new BasicNameValuePair(key, params.get(key)));
                 }
+                // 模拟表单
+                UrlEncodedFormEntity entity = new UrlEncodedFormEntity(paramList);
+                httpPost.setEntity(entity);
             }
-        }
-        HttpPost httpPost = new HttpPost(url);
-        if (pairs != null && pairs.size() > 0) {
-            httpPost.setEntity(new UrlEncodedFormEntity(pairs, CHARSET));
+            // 执行http请求
+            response = httpClient.execute(httpPost);
+            result = EntityUtils.toString(response.getEntity(), charset);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (response != null) {
+                    response.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
-        try (CloseableHttpResponse response = HTTP_CLIENT.execute(httpPost)) {
-            int statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode != 200) {
-                httpPost.abort();
-                throw new RuntimeException("HttpClient,error status code :" + statusCode);
-            }
-            HttpEntity entity = response.getEntity();
-            String result = null;
-            if (entity != null) {
-                result = EntityUtils.toString(entity, "utf-8");
-            }
-            EntityUtils.consume(entity);
-            return result;
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return result;
     }
 
 }
